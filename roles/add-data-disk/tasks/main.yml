@@ -1,0 +1,34 @@
+---
+  - name: Create new partition in /dev/sdc
+    parted:
+      device: /dev/sdc
+      number: 1
+      state: present
+  - name: Create a xfs filesystem on /dev/sdc1
+    filesystem:
+      fstype: xfs
+      dev: /dev/sdc1
+    tags: ['disk']
+  - name: "Ensure the mount directory exists"
+    file:
+      path: /data
+      owner: root
+      group: root
+      state: directory
+    tags: ['disk']
+  - name: "Get UUID for partition"
+    command: blkid -s UUID -o value /dev/sdc1
+    register: disk_blkid
+    changed_when: False
+    tags: ['disk']
+  - name: "Mount /data disk"
+    mount:
+      name: /data
+      fstype: xfs
+      #opts: omit
+      passno: '0'
+      src: 'UUID={{ item.stdout }}'
+      state: mounted
+    with_items:
+      - '{{ disk_blkid }}'
+    tags: ['disk']

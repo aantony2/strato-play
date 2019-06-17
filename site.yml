@@ -1,0 +1,8 @@
+---
+  - name: add data disk to worker nodes
+    hosts: all:!windows
+    gather_facts: False
+    become: true
+    become_method: sudo
+    roles:
+    - role: add-data-disk
